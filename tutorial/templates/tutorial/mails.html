@@ -1,0 +1,32 @@
+<!-- Copyright (c) Microsoft Corporation.
+     Licensed under the MIT License. -->
+
+<!-- <CalendarSnippet> -->
+{% extends "tutorial/layout.html" %}
+{% block content %}
+<h1>Email folders</h1>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Folder</th>
+      <th scope="col">Total emails</th>
+      <th scope="col">Unread</th>
+      <th scope="col">Size in bytes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if events %}
+      {% for event in events %}
+        <tr>
+          <td>{{ event.body }}</td>
+<!--          <td>{{ event.displayName }}</td>-->
+<!--          <td>{{ event.totalItemCount }}</td>-->
+<!--          <td>{{ event.unreadItemCount }}</td>-->
+<!--          <td>{{ event.sizeInBytes }}</td>-->
+        </tr>
+      {% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+{% endblock %}
+<!-- </CalendarSnippet> -->
