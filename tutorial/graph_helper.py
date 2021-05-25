@@ -27,7 +27,7 @@ def get_user_mails(token):
   # Configure query parameters to
   # modify the results
   query_params = {
-    'top': 20 # page size
+    'top': 100 # page size
     }
 
   # Send GET to /me/events
@@ -41,8 +41,9 @@ def get_user_mails(token):
     # list all mail folders
     "{0}/me/mailfolders".format(graph_url), headers=headers, params=query_params)
   mail_folders = events.json()
-  #for mailfolder in mail_folders["value"]:
-  #    print(f'{mailfolder["displayName"]}, id: {mailfolder["id"]}')
+  # for mailfolder in mail_folders["value"]:
+      #print(f'{mailfolder["displayName"]}, id: {mailfolder["id"]}')
+      # print(f'{mailfolder}')
 
      # get emails in SBOOK folder
     #'{0}/me/mailfolders/AAMkAGZkY2QwNTc2LTk5ZmMtNGY4ZS05ODk3LWUwYjkwZjQwNmZiZgAuAAAAAACH2dhbPdcWRal55qhcuA6OAQDvcMs_nI5nR6M1kM8smVKLAAAB1frLAAA=/messages'.format(graph_url), headers=headers, params=query_params)
@@ -54,54 +55,17 @@ def get_user_mails(token):
     #"{0}/me/messages/AAMkAGZkY2QwNTc2LTk5ZmMtNGY4ZS05ODk3LWUwYjkwZjQwNmZiZgBGAAAAAACH2dhbPdcWRal55qhcuA6OBwDvcMs_nI5nR6M1kM8smVKLAAAAAAEJAADvcMs_nI5nR6M1kM8smVKLAAAgoiWTAAA=/$value".format(graph_url), headers=headers, params=query_params)
   #print(events.content.decode('utf-8')) # print mime message; save this as .eml file
 
-
   for mailfolder in mail_folders["value"]:
-      print(f'[*] Fetching mails from folder: {mailfolder["displayName"]}')
-      try:
-          # if there is link to next page of result, use that link in next request
-          while next_page_url:
-              message_list = graph_client.get(
-                  '{0}'.format(next_page_url), headers=headers)
-              for email_object in message_list.json()["value"]:
-                  email = graph_client.get(
-                      '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers=headers,
-                      params=query_params)
-
-                  email_mime = email.content  # bytes object
-                  email_subject = email_object["subject"]
-                  email_from = email_object["from"]["emailAddress"]["name"]
-                  try:
-                      print(f"Writing mail {email_subject}")
-                      f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
-                      f.write(email_mime)
-                      f.close()
-                  except OSError as exc:
-                      if exc.errno == errno.ENAMETOOLONG:
-                          print("!!! >>> Filename too long. Truncating subject line to 150 chars")
-                          f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
-                          try:
-                              f.write()
-                              f.close()
-                          except Exception as e:
-                              print(f"Couldn't write email due to {e}")
-                              continue
-                      else:
-                          print(exc)
-                  except Exception as e:
-                      print(f"Couldn't write email due to {e}")
-                      continue
-
-              # check if there is a link for next page of result
-              try:
-                  next_page_url = message_list.json()["@odata.nextLink"]
-              except:
-                  pass
-      except UnboundLocalError: # else next_page_url is not defined, so start at beginning
-          message_list = graph_client.get(
-         '{0}/me/mailfolders/{1}/messages'.format(graph_url, mailfolder["id"]), headers=headers, params=query_params)
+      #if mailfolder["displayName"] in ["Inbox", "Deleted Items", "Junk Email", "Sent Items"]:
+      #if mailfolder["displayName"] in ["Sent Items", "Important"]:
+      print(f'[*] Fetching mails from folder: >> {mailfolder["displayName"]}')
+      message_list = graph_client.get(
+      '{0}/me/mailfolders/{1}/messages'.format(graph_url, mailfolder["id"]), headers=headers, params=query_params)
+      if message_list.json()["value"]:
           for email_object in message_list.json()["value"]:
+              # print(f'{email_object}')
               email = graph_client.get(
-                  '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers=headers, params=query_params)
+                  '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers = headers, params = query_params)
 
               email_mime = email.content # bytes object
               email_subject = email_object["subject"]
@@ -122,12 +86,67 @@ def get_user_mails(token):
               except Exception as e:
                   print(f"Couldn't write email due to {e}")
                   continue
+          else:
+              print(f"[**] Finished with first batch. See if there are other pages.")
 
-          # check if there is a link for next page of result
-          try:
-              next_page_url = message_list.json()["@odata.nextLink"]
-          except:
-              pass
+              # check if there is a link for next page of result
+              try:
+                  next_page_url = message_list.json()["@odata.nextLink"]
+                  print(f"[**] Next page {next_page_url}")
+                  # if there is link to next page of result, use that link in next request
+                  if next_page_url:
+                    fetch_mails(graph_client, headers, next_page_url, query_params)
+              except:
+                  print("Problem getting next page with emails!")
+                  pass
+      else:
+          print("[**] No emails in folder!")
+
+
+def fetch_mails(graph_client, headers, next_page_url, query_params):
+    # if there is link to next page of result, use that link in next request
+    while next_page_url:
+        message_list = graph_client.get(
+            '{0}'.format(next_page_url), headers=headers)
+        if message_list.json()["value"]:
+            for email_object in message_list.json()["value"]:
+                email = graph_client.get(
+                    '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers=headers,
+                    params=query_params)
+
+                email_mime = email.content  # bytes object
+                email_subject = email_object["subject"]
+                email_from = email_object["from"]["emailAddress"]["name"]
+                try:
+                    print(f"Writing mail {email_subject}")
+                    f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
+                    f.write(email_mime)
+                    f.close()
+                except OSError as exc:
+                    if exc.errno == errno.ENAMETOOLONG:
+                        print("!!! >>> Filename too long. Truncating subject line to 150 chars")
+                        f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
+                        try:
+                            f.write()
+                            f.close()
+                        except Exception as e:
+                            print(f"Couldn't write email due to {e}")
+                            continue
+                    else:
+                        print(exc)
+                except Exception as e:
+                    print(f"Couldn't write email due to {e}")
+                    continue
+            print(f"[**] Finished with batch. Continue to next page.")
+            # check if there is a link for next page of result
+            try:
+                next_page_url = message_list.json()["@odata.nextLink"]
+                print(f"[**] Next page {next_page_url}")
+           #     if next_page_url:
+           #       fetch_mails(graph_client, headers, next_page_url, query_params)
+            except Exception as e:
+                print(f'[**] No more pages with emails!')
+                return
 
 
 if __name__ == "__main__":
