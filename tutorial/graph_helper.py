@@ -62,7 +62,7 @@ def get_user_mails(token):
       message_list = graph_client.get(
       '{0}/me/mailfolders/{1}/messages'.format(graph_url, mailfolder["id"]), headers=headers, params=query_params)
       if message_list.json()["value"]:
-          for email_object in message_list.json()["value"]:
+          for i, email_object in enumerate(message_list.json()["value"]): # use enumerate to get index as well
               # print(f'{email_object}')
               email = graph_client.get(
                   '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers = headers, params = query_params)
@@ -72,13 +72,13 @@ def get_user_mails(token):
               email_from = email_object["from"]["emailAddress"]["name"]
               try:
                 print(f"Writing mail {email_subject}!")
-                f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
+                f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
                 f.write(email_mime)
                 f.close()
               except OSError as exc:
                 if exc.errno == errno.ENAMETOOLONG:
                   print("!!! >>> Filename too long. Truncating subject line to 150 chars")
-                  f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
+                  f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
                   f.write()
                   f.close()
                 else:
@@ -109,7 +109,7 @@ def fetch_mails(graph_client, headers, next_page_url, query_params):
         message_list = graph_client.get(
             '{0}'.format(next_page_url), headers=headers)
         if message_list.json()["value"]:
-            for email_object in message_list.json()["value"]:
+            for i, email_object in enumerate(message_list.json()["value"]):
                 email = graph_client.get(
                     '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers=headers,
                     params=query_params)
@@ -119,13 +119,13 @@ def fetch_mails(graph_client, headers, next_page_url, query_params):
                 email_from = email_object["from"]["emailAddress"]["name"]
                 try:
                     print(f"Writing mail {email_subject}")
-                    f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
+                    f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
                     f.write(email_mime)
                     f.close()
                 except OSError as exc:
                     if exc.errno == errno.ENAMETOOLONG:
                         print("!!! >>> Filename too long. Truncating subject line to 150 chars")
-                        f = open(f'{OUTPUT_DIRECTORY}/{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
+                        f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
                         try:
                             f.write()
                             f.close()
@@ -142,8 +142,6 @@ def fetch_mails(graph_client, headers, next_page_url, query_params):
             try:
                 next_page_url = message_list.json()["@odata.nextLink"]
                 print(f"[**] Next page {next_page_url}")
-           #     if next_page_url:
-           #       fetch_mails(graph_client, headers, next_page_url, query_params)
             except Exception as e:
                 print(f'[**] No more pages with emails!')
                 return
