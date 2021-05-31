@@ -4,6 +4,9 @@ Register your app first at Azure as described [here](https://docs.microsoft.com/
 
 Then [create oauth_settings.yml file](https://docs.microsoft.com/en-us/graph/tutorials/python?tutorial-step=3) 
 
+You also need to create settings.yml file with your SECRET_KEY. [Example file](https://github.com/microsoftgraph/msgraph-training-pythondjangoapp/blob/main/demo/graph_tutorial/graph_tutorial/settings.py)
+from MS Github page.
+
 # Tested on Ubuntu 20.04
 
 Install the python virtual environment in the project root directory
