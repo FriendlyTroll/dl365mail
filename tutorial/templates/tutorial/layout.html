@@ -30,7 +30,7 @@
             </li>
             {% if user.is_authenticated %}
               <li class="nav-item" data-turbolinks="false">
-                <a class="nav-link{% if request.resolver_match.view_name == 'calendar' %} active{% endif %}" href="{% url 'emails' %}">Emails</a>
+                <a class="nav-link{% if request.resolver_match.view_name == 'calendar' %} active{% endif %}" href="{% url 'emails' %}">Download Emails</a>
               </li>
             {% endif %}
           </ul>
