@@ -5,11 +5,11 @@
 {% extends "tutorial/layout.html" %}
 {% block content %}
 <div class="jumbotron">
-  <h1>Python Graph Tutorial</h1>
-  <p class="lead">This sample app shows how to use the Microsoft Graph API to access a user's data from Python</p>
+  <h1>Email download</h1>
+  <p class="lead">This app downloads emails in .eml format from Microsoft 365 Outlook.</p>
   {% if user.is_authenticated %}
     <h4>Welcome {{ user.name }}!</h4>
-    <p>Use the navigation bar at the top of the page to get started.</p>
+    <p>Click the link Download Emails to start saving the emails of {{ user.name }}.</p></p>
   {% else %}
     <a href="{% url 'signin' %}" class="btn btn-primary btn-large">Click here to sign in</a>
   {% endif %}
