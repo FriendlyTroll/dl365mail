@@ -3,6 +3,7 @@
 
 # <FirstCodeSnippet>
 import errno
+import logging
 
 from requests_oauthlib import OAuth2Session
 
@@ -54,16 +55,18 @@ def get_user_mails(token):
     # get single mail
     #"{0}/me/messages/AAMkAGZkY2QwNTc2LTk5ZmMtNGY4ZS05ODk3LWUwYjkwZjQwNmZiZgBGAAAAAACH2dhbPdcWRal55qhcuA6OBwDvcMs_nI5nR6M1kM8smVKLAAAAAAEJAADvcMs_nI5nR6M1kM8smVKLAAAgoiWTAAA=/$value".format(graph_url), headers=headers, params=query_params)
   #print(events.content.decode('utf-8')) # print mime message; save this as .eml file
+  
+  logging.basicConfig(filename='/tmp/usermail.log', level=logging.INFO)
 
   for mailfolder in mail_folders["value"]:
       #if mailfolder["displayName"] in ["Inbox", "Deleted Items", "Junk Email", "Sent Items"]:
       #if mailfolder["displayName"] in ["Sent Items", "Important"]:
-      print(f'[*] Fetching mails from folder: >> {mailfolder["displayName"]}')
+      logging.info(f'[*] Fetching mails from folder: >> {mailfolder["displayName"]}')
       message_list = graph_client.get(
       '{0}/me/mailfolders/{1}/messages'.format(graph_url, mailfolder["id"]), headers=headers, params=query_params)
       if message_list.json()["value"]:
           for i, email_object in enumerate(message_list.json()["value"]): # use enumerate to get index as well
-              # print(f'{email_object}')
+              # logging.info(f'{email_object}')
               email = graph_client.get(
                   '{0}/me/messages/{1}/$value'.format(graph_url, email_object["id"]), headers = headers, params = query_params)
 
@@ -71,36 +74,36 @@ def get_user_mails(token):
               email_subject = email_object["subject"]
               email_from = email_object["from"]["emailAddress"]["name"]
               try:
-                print(f"Writing mail {email_subject}!")
+                logging.info(f"Writing mail {email_subject}!")
                 f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
                 f.write(email_mime)
                 f.close()
               except OSError as exc:
                 if exc.errno == errno.ENAMETOOLONG:
-                  print("!!! >>> Filename too long. Truncating subject line to 150 chars")
+                  logging.info("!!! >>> Filename too long. Truncating subject line to 150 chars")
                   f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
                   f.write()
                   f.close()
                 else:
-                  print(exc)
+                  logging.info(exc)
               except Exception as e:
-                  print(f"Couldn't write email due to {e}")
+                  logging.info(f"Couldn't write email due to {e}")
                   continue
           else:
-              print(f"[**] Finished with first batch. See if there are other pages.")
+              logging.info(f"[**] Finished with first batch. See if there are other pages.")
 
               # check if there is a link for next page of result
               try:
                   next_page_url = message_list.json()["@odata.nextLink"]
-                  print(f"[**] Next page {next_page_url}")
+                  logging.info(f"[**] Next page {next_page_url}")
                   # if there is link to next page of result, use that link in next request
                   if next_page_url:
                     fetch_mails(graph_client, headers, next_page_url, query_params)
               except:
-                  print("Problem getting next page with emails!")
+                  logging.info("Problem getting next page with emails!")
                   pass
       else:
-          print("[**] No emails in folder!")
+          logging.info("[**] No emails in folder!")
 
 
 def fetch_mails(graph_client, headers, next_page_url, query_params):
@@ -118,32 +121,32 @@ def fetch_mails(graph_client, headers, next_page_url, query_params):
                 email_subject = email_object["subject"]
                 email_from = email_object["from"]["emailAddress"]["name"]
                 try:
-                    print(f"Writing mail {email_subject}")
+                    logging.info(f"Writing mail {email_subject}")
                     f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
                     f.write(email_mime)
                     f.close()
                 except OSError as exc:
                     if exc.errno == errno.ENAMETOOLONG:
-                        print("!!! >>> Filename too long. Truncating subject line to 150 chars")
+                        logging.info("!!! >>> Filename too long. Truncating subject line to 150 chars")
                         f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject[:150].replace("/", "")}.eml', 'wb')
                         try:
                             f.write()
                             f.close()
                         except Exception as e:
-                            print(f"Couldn't write email due to {e}")
+                            logging.info(f"Couldn't write email due to {e}")
                             continue
                     else:
-                        print(exc)
+                        logging.info(exc)
                 except Exception as e:
-                    print(f"Couldn't write email due to {e}")
+                    logging.info(f"Couldn't write email due to {e}")
                     continue
-            print(f"[**] Finished with batch. Continue to next page.")
+            logging.info(f"[**] Finished with batch. Continue to next page.")
             # check if there is a link for next page of result
             try:
                 next_page_url = message_list.json()["@odata.nextLink"]
-                print(f"[**] Next page {next_page_url}")
+                logging.info(f"[**] Next page {next_page_url}")
             except Exception as e:
-                print(f'[**] No more pages with emails!')
+                logging.info(f'[**] No more pages with emails!')
                 return
 
 

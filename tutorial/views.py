@@ -2,11 +2,13 @@
 # Licensed under the MIT License.
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.urls import reverse
 from tutorial.auth_helper import get_sign_in_url, get_token_from_code, store_token, store_user, remove_user_and_token, get_token
 from tutorial.graph_helper import get_user, get_user_mails
 import dateutil.parser
+import threading
+import time
 
 # <HomeViewSnippet>
 def home(request):
@@ -67,16 +69,37 @@ def callback(request):
 # </CallbackViewSnippet>
 
 # <CalendarViewSnippet>
+
+def file_iterator(ffile, chunk_size=512):
+    with open(ffile) as f:
+        while True:
+            c = f.readline(chunk_size)
+            if c:
+                yield c + '<br>'
+                # wait a bit for the file to populate lest we break immediately
+                time.sleep(0.75)
+            else:
+                break
+    f.close()
+
 def emails(request):
   context = initialize_context(request)
-
   token = get_token(request)
 
-  events = get_user_mails(token)
+  # create thread to fetch the mails 
+  t = threading.Thread(target=get_user_mails, args=(token,), daemon=True)
+  t.start()
+
+  # read from log file to display output on web page
+  log_file = '/tmp/usermail.log'
+  # wait for the file to be created
+  time.sleep(1.5)
+  response = StreamingHttpResponse(file_iterator(log_file))
+  return response
 
   #if events:
   #  context['events'] = events['value']
 
   #print(f"Got resp: >> {events}")
-  return render(request, 'tutorial/mails.html', context)
+  #return render(request, 'tutorial/mails.html', response)
 # </CalendarViewSnippet>
