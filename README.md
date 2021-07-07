@@ -7,8 +7,9 @@ Then [create oauth_settings.yml file](https://docs.microsoft.com/en-us/graph/tut
 You also need to create settings.yml file with your SECRET_KEY. [Example file](https://github.com/microsoftgraph/msgraph-training-pythondjangoapp/blob/main/demo/graph_tutorial/graph_tutorial/settings.py)
 from MS Github page.
 
-# Tested on Ubuntu 20.04
+### Tested on Ubuntu 20.04
 
+# Installation
 Install the python virtual environment in the project root directory
 
 ```python3 -m venv venv```
@@ -28,4 +29,4 @@ Create the directory called "emls". This is where the .eml files will be written
 
 You should now access http://localhost:8000 and login with the user for which you want to download emails.
 
-After successful login click "Download emails" and you should see the output in your terminal.
+After successful login click "Download emails" and you should see the output in your browser.
