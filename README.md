@@ -10,6 +10,7 @@ from MS Github page.
 ### Tested on Ubuntu 20.04
 
 # Installation
+## Python virtual environment
 Install the python virtual environment in the project root directory
 
 ```python3 -m venv venv```
@@ -30,3 +31,20 @@ Create the directory called "emls". This is where the .eml files will be written
 You should now access http://localhost:8000 and login with the user for which you want to download emails.
 
 After successful login click "Download emails" and you should see the output in your browser.
+
+## Docker
+
+If you have docker installed build the image:
+
+```docker build -t dl365mail .```
+
+Then run it:
+
+```docker run -it --rm -p 8000:8000 -v ~/emails:/emls dl365mail```
+
+This will create a folder in your $HOME where emails will be stored. You should change the
+permissions of this folder to your user.
+
+```chown -R user emails```
+
+Now access http://localhost:8000 as described above.
