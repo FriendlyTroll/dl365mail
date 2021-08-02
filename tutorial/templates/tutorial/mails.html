@@ -15,15 +15,9 @@
     </tr>
   </thead>
   <tbody>
-    {% if events %}
-      {% for event in events %}
-        <tr>
-          <td>{{ event.body }}</td>
-<!--          <td>{{ event.displayName }}</td>-->
-<!--          <td>{{ event.totalItemCount }}</td>-->
-<!--          <td>{{ event.unreadItemCount }}</td>-->
-<!--          <td>{{ event.sizeInBytes }}</td>-->
-        </tr>
+    {% if response %}
+      {% for event in response %}
+          <p> event </p>
       {% endfor %}
     {% endif %}
   </tbody>
