@@ -40,7 +40,7 @@ If you have docker installed build the image:
 
 Then run it:
 
-```docker run -it --rm -p 8000:8000 -v ~/emails:/emls dl365mail```
+```docker run -it --rm -p 8000:8000 -v ~/emails:/code/emls dl365mail```
 
 This will create a folder in your $HOME where emails will be stored. You should change the
 permissions of this folder to your user.
