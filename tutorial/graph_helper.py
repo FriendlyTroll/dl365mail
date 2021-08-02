@@ -72,7 +72,11 @@ def get_user_mails(token):
 
               email_mime = email.content # bytes object
               email_subject = email_object["subject"]
-              email_from = email_object["from"]["emailAddress"]["name"]
+              try:
+                email_from = email_object["from"]["emailAddress"]["name"]
+              except KeyError as e:
+                  logging.info("!!! >>> KeyError: No 'from' field in email!")
+                  email_from = "Unknown"
               try:
                 logging.info(f"Writing mail {email_subject}!")
                 f = open(f'{OUTPUT_DIRECTORY}/{i}--{email_from}--{email_subject.replace("/", "")}.eml', 'wb')
